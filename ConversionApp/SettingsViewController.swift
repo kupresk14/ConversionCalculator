@@ -16,32 +16,80 @@ protocol SettingsViewControllerDelegate {
 class SettingsViewController: UIViewController {
 
     @IBOutlet weak var settingsPickerView: UIPickerView!
-       
-       var pickerData: [String] = [String]()
-       var selection = "Default"
-       var defaultFromUnit = LengthUnit.Yards
-       var defaultToUnits = LengthUnit.Meters
-       var delegate : SettingsViewControllerDelegate?
-       
+    @IBOutlet weak var fromUnitSelection: UILabel!
+    @IBOutlet weak var toUnitSelection: UILabel!
+    
+    
+    var pickerData: [String] = [String]()
+    var selection = ""
+    var fromUnitsString: String = "Yards"
+    var toUnitsString: String = "Meters"
+    var delegate : SettingsViewControllerDelegate?
+    var mode: CalculatorMode = .Length
+
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
-        self.pickerData = ["Meters","Yards","Miles","Liters","Gallons","Quarts"]
+        
+        //setting initial UILabel text and mode
+        self.fromUnitSelection.text = fromUnitsString
+        self.toUnitSelection.text = toUnitsString
+        
+        // Setting picker Data (Need to figure out how to get mode settings to this class.)
+        switch (mode) {
+        case .Length:
+            LengthUnit.allCases.forEach{
+                pickerData.append($0.rawValue)
+            }
+        case .Volume:
+            VolumeUnit.allCases.forEach{
+                pickerData.append($0.rawValue)
+            }
+            
+        }
+        
         self.settingsPickerView.delegate = self
         self.settingsPickerView.dataSource = self
         
+              //Instanciate fromUnitSelection tap function
+              let fromUnitTap = UITapGestureRecognizer(target: self, action: #selector(SettingsViewController.fromUnitTapped))
+              fromUnitSelection.addGestureRecognizer(fromUnitTap)
+              
+              //Instanciate toUnitSelection tap function
+              let toUnitTap = UITapGestureRecognizer(target: self, action: #selector(SettingsViewController.toUnitTapped))
+              toUnitSelection.addGestureRecognizer(toUnitTap)
     }
     
-    override func viewWillDisappear(_ animated: Bool){
-        super.viewWillDisappear(animated)
+    //Uses the settings button to send delegate information to the View Controller class.
+    //It then calls dismiss in order to close the window when saved.
+    @IBAction func settingsButton(_ sender: Any) {
         if let d = self.delegate{
-            d.settingsChanged(fromUnits: defaultFromUnit, toUnits: defaultToUnits)
+            if(mode == .Length){
+                d.settingsChanged(fromUnits: LengthUnit(rawValue: fromUnitsString)!, toUnits: LengthUnit(rawValue: toUnitsString)!)
+            }
+            else if(mode == .Volume){
+                d.settingsChanged(fromUnits: VolumeUnit(rawValue: fromUnitsString)!, toUnits: VolumeUnit(rawValue: toUnitsString)!)
+            }
+        navigationController?.popViewController(animated: true)
+        dismiss(animated: true, completion: nil)
         }
     }
     
-   
+
+    //Function to control fromUnit UILabel Tap and shows settings picker
+    //when the text is tapped
+    @objc func fromUnitTapped(sender:UITapGestureRecognizer){
+        settingsPickerView.isHidden = false
+         fromUnitSelection.text = selection
+         fromUnitsString = selection
+    }
     
+    //Function to control toUnit UILabel Tap and shows settings picker
+    //when the text is tapped
+    @objc func toUnitTapped(sender:UITapGestureRecognizer){
+        settingsPickerView.isHidden = false
+        toUnitSelection.text = selection
+        toUnitsString = selection
+    }
     
     /*
     // MARK: - Navigation
@@ -73,4 +121,5 @@ extension SettingsViewController : UIPickerViewDataSource, UIPickerViewDelegate 
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         self.selection = self.pickerData[row]
     }
+    
 }

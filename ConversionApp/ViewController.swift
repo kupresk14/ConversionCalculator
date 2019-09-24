@@ -15,6 +15,7 @@ class ViewController: UIViewController, SettingsViewControllerDelegate{
     @IBOutlet weak var toLabel: UILabel!
     @IBOutlet weak var fromField: UITextField!
     @IBOutlet weak var toField: UITextField!
+    var currentMode: CalculatorMode = .Length
     
     
     
@@ -25,6 +26,7 @@ class ViewController: UIViewController, SettingsViewControllerDelegate{
         //Allows user to touch anywhere on screen to remove keyboard view
         let detectTouch = UITapGestureRecognizer(target: self, action: #selector(self.dismissKeyboard))
         self.view.addGestureRecognizer(detectTouch)
+        
     }
     
     @objc func dismissKeyboard(){
@@ -32,36 +34,71 @@ class ViewController: UIViewController, SettingsViewControllerDelegate{
     }
     
     func settingsChanged(fromUnits: LengthUnit, toUnits: LengthUnit) {
-        fromLabel.text = "\(fromUnits)"
-        toLabel.text = "\(toUnits)"
+        self.fromLabel.text = fromUnits.rawValue
+        self.toLabel.text = toUnits.rawValue
     }
 
     func settingsChanged(fromUnits: VolumeUnit, toUnits: VolumeUnit) {
-        fromLabel.text = "\(fromUnits)"
-        toLabel.text = "\(toUnits)"
+        self.fromLabel.text = fromUnits.rawValue
+        print(fromUnits.rawValue)
+        self.toLabel.text = toUnits.rawValue
     }
     
+
     override func prepare(for segue: UIStoryboardSegue, sender: Any?){
-        if segue.identifier == "settingsSeque"{
-            if let dest = segue.destination as? SettingsViewController {
-                dest.delegate = self
+        if segue.identifier == "settingSegue"{
+            if let d = segue.destination.childViewControllers[0] as? SettingsViewController {
+                    d.delegate = self
+                    d.mode = currentMode
+                    d.fromUnitsString = fromLabel.text!
+                    d.toUnitsString = toLabel.text!
+                  }
             }
         }
-    }
     
+    
+    
+    @IBAction func cancelSettingsViewController(_ segue: UIStoryboardSegue){
+
+    }
+
+    //Controls the funtionality of the calculator button. Need to pull conversion values
+    //from the UnitsAndModes for conversion.
     @IBAction func calcButton(_ sender: Any) {
-        let fromMode:Double? = Double(self.fromField.text!)
-        let toMode:Double? = Double(self.toField.text!);
+      let fromMode:Double? = Double(self.fromField.text!)
+      let toMode:Double? = Double(self.toField.text!);
+        var calcLengthAns: Double = 0.0
+        var calcVolumeAns: Double = 0.0
         
-        if(self.fromField.text != ""){
-            let convKey = LengthConversionKey(toUnits: .Yards, fromUnits: .Meters);
-            let yardAns = fromMode! * lengthConversionTable[convKey]!;
-            self.toField.text = String(yardAns);
+        var fromText: String = fromLabel.text!
+        var toText: String = toLabel.text!
+        
+        
+        if(self.fromField.text == "" && self.toField.text != ""){
+            switch(currentMode){
+            case .Length:
+                let convKey =  LengthConversionKey(toUnits: LengthUnit(rawValue: fromText)!, fromUnits: LengthUnit(rawValue: toText)!)
+                   print(convKey)
+                   calcLengthAns = lengthConversionTable[convKey]! * toMode!
+                   fromField.text = "\(calcLengthAns)"
+            case .Volume:
+                let convKey =  VolumeConversionKey(toUnits: VolumeUnit(rawValue: fromText)!, fromUnits: VolumeUnit(rawValue: toText)!)
+                calcVolumeAns = volumeConversionTable[convKey]! * toMode!
+                fromField.text = "\(calcVolumeAns)"
+            }
         }
-        else if(self.toField.text != ""){
-            let convKey = LengthConversionKey(toUnits: .Meters, fromUnits: .Yards)
-            let meterAns = toMode! * lengthConversionTable[convKey]!
-            self.fromField.text = String(meterAns)
+        else if(self.fromField.text != "" && self.toField.text == ""){
+            switch(currentMode){
+            case .Length:
+                let convKey =  LengthConversionKey(toUnits: LengthUnit(rawValue: toText)!, fromUnits: LengthUnit(rawValue: fromText)!)
+                   print(convKey)
+                   calcLengthAns = lengthConversionTable[convKey]! * fromMode!
+                   toField.text = "\(calcLengthAns)"
+            case .Volume:
+                let convKey =  VolumeConversionKey(toUnits: VolumeUnit(rawValue: toText)!, fromUnits: VolumeUnit(rawValue: fromText)!)
+                    calcVolumeAns = volumeConversionTable[convKey]! * fromMode!
+                    toField.text = "\(calcVolumeAns)"
+            }
         }
     }
     
@@ -71,13 +108,16 @@ class ViewController: UIViewController, SettingsViewControllerDelegate{
     }
     
     @IBAction func modeButton(_ sender: Any) {
-        if(fromLabel.text == "Yards" && toLabel.text == "Meters"){
-            fromLabel.text = "Gallons"
-            toLabel.text = "Liters"
+        //implement this to send mode data to the settings display when needed
+        if(currentMode == .Length){
+            currentMode = .Volume
+            self.fromLabel.text = VolumeUnit.Gallons.rawValue
+            self.toLabel.text = VolumeUnit.Liters.rawValue
         }
         else{
-            fromLabel.text = "Yards"
-            toLabel.text = "Meters"
+            currentMode = .Length
+            self.fromLabel.text = LengthUnit.Yards.rawValue
+            self.toLabel.text = LengthUnit.Meters.rawValue
         }
     }
 }

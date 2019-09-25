@@ -109,7 +109,7 @@ class ViewController: UIViewController, SettingsViewControllerDelegate{
         //one type to the same type. Not sure if we should allow that or not so I checked
         //for it
         if(self.fromLabel.text == self.toLabel.text){
-            let alert = UIAlertController(title: "Just an FYI", message: "You are trying to convert between two of the same type. Choose different settings!", preferredStyle: UIAlertControllerStyle.alert)
+            let alert = UIAlertController(title: "Just an FYI", message: "You are converting between two of the same type. Choose different settings!", preferredStyle: UIAlertControllerStyle.alert)
                    alert.addAction(UIAlertAction(title: "Okay", style: UIAlertActionStyle.default, handler: nil))
                    self.present(alert, animated: true, completion: nil)
         }

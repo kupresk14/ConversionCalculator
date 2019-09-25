@@ -26,9 +26,13 @@ class SettingsViewController: UIViewController {
     var toUnitsString: String = "Meters"
     var delegate : SettingsViewControllerDelegate?
     var mode: CalculatorMode = .Length
+    var numOfLabelTouched = 0
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //Initially hide the picker view
+        settingsPickerView.isHidden = true
         
         //setting initial UILabel text and mode
         self.fromUnitSelection.text = fromUnitsString
@@ -44,7 +48,6 @@ class SettingsViewController: UIViewController {
             VolumeUnit.allCases.forEach{
                 pickerData.append($0.rawValue)
             }
-            
         }
         
         self.settingsPickerView.delegate = self
@@ -57,7 +60,15 @@ class SettingsViewController: UIViewController {
               //Instanciate toUnitSelection tap function
               let toUnitTap = UITapGestureRecognizer(target: self, action: #selector(SettingsViewController.toUnitTapped))
               toUnitSelection.addGestureRecognizer(toUnitTap)
+          
+            //Instanciate to hide pickerView when screen is tapped
+            let detectTouch = UITapGestureRecognizer(target: self, action: #selector(self.dismissUIPickerView))
+            self.view.addGestureRecognizer(detectTouch)
     }
+    
+    @objc func dismissUIPickerView(){
+        self.settingsPickerView.isHidden = true
+       }
     
     //Uses the settings button to send delegate information to the View Controller class.
     //It then calls dismiss in order to close the window when saved.
@@ -79,17 +90,16 @@ class SettingsViewController: UIViewController {
     //when the text is tapped
     @objc func fromUnitTapped(sender:UITapGestureRecognizer){
         settingsPickerView.isHidden = false
-         fromUnitSelection.text = selection
-         fromUnitsString = selection
+        numOfLabelTouched = 1 //Used to control which UIlabel is updated
     }
     
     //Function to control toUnit UILabel Tap and shows settings picker
     //when the text is tapped
     @objc func toUnitTapped(sender:UITapGestureRecognizer){
         settingsPickerView.isHidden = false
-        toUnitSelection.text = selection
-        toUnitsString = selection
+        numOfLabelTouched = 2 //used to control which UIlabel is updated
     }
+    
     
     /*
     // MARK: - Navigation
@@ -120,6 +130,21 @@ extension SettingsViewController : UIPickerViewDataSource, UIPickerViewDelegate 
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         self.selection = self.pickerData[row]
+    
+        if(numOfLabelTouched == 1){
+            fromUnitSelection.text = self.selection
+            fromUnitsString = self.selection
+        }
+        else if(numOfLabelTouched == 2){
+            toUnitSelection.text = self.selection
+            toUnitsString = self.selection
+        }
+        settingsPickerView.isHidden = true
+    }
+    
+    func textFieldShouldBeginEditing(textField: UITextField) -> Bool {
+        settingsPickerView.isHidden = false
+        return false
     }
     
 }

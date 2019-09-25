@@ -63,7 +63,6 @@ class DecimalMinusTextField: UITextField {
     
     @objc func doneTouchUpInside(_ sender: UIButton!) {
         self.resignFirstResponder();
-        
     }
     
     override func layoutSubviews() {
